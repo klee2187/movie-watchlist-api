@@ -1,0 +1,1 @@
+const awardAndNomination = require('../models/award-and-nomination');

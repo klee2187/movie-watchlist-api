@@ -1,0 +1,1 @@
+const watchlistItem = require('../models/watchlist-item');
