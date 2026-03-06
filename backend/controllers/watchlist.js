@@ -2,50 +2,101 @@ const { ObjectId } = require('mongodb');
 const mongodb = require('../db/connect');
 
 // To GET all watchlist items
+// const getUserWatchlist = async (req, res) => {
+//   try {
+//     // const userId = new ObjectId(req.user._id || req.user.id);
+
+//     // now _db is already the 'test' database
+//     const watchlistItems = await mongodb
+//       .getDb()
+//       .collection('watchlist')
+//       .aggregate([
+//         // { $match: { userId: userId } },
+//         {
+//           $lookup: {
+//             from: 'movies',
+//             localField: 'movieId',
+//             foreignField: '_id',
+//             as: 'movieDetails',
+//           },
+//         },
+//         { $unwind: '$movieDetails' },
+//       ])
+//       .toArray();
+
+//     res.status(200).json(watchlistItems);
+//   } catch (err) {
+//     res.status(500).json({ message: 'err.message' });
+//   }
+// };
+
+
 const getUserWatchlist = async (req, res) => {
   try {
-    const userId = new ObjectId(req.user._id || req.user.id);
-
-    // now _db is already the 'test' database
     const watchlistItems = await mongodb
       .getDb()
       .collection('watchlist')
       .aggregate([
-        { $match: { userId: userId } },
         {
           $lookup: {
             from: 'movies',
-            localField: 'movieId',
-            foreignField: '_id',
-            as: 'movieDetails',
-          },
+            let: { movieId: '$movieId' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $or: [
+                      { $eq: ['$_id', '$$movieId'] },
+                      { $eq: [{ $toString: '$_id' }, '$$movieId'] }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: 'movieDetails'
+          }
         },
-        { $unwind: '$movieDetails' },
+        { 
+          $unwind: { 
+            path: '$movieDetails', 
+            preserveNullAndEmptyArrays: false 
+          } 
+        }
       ])
       .toArray();
 
     res.status(200).json(watchlistItems);
   } catch (err) {
-    res.status(500).json({ message: 'err.message' });
+    console.error('Error in getUserWatchlist:', err);
+    res.status(500).json({ message: err.message });
   }
 };
 
 // To GET a single watchlist item by id
 const getWatchlistItemById = async (req, res) => {
   try {
-    const watchlistId = new ObjectId(req.params.id);
-    const userId = new ObjectId(req.user._id || req.user.id);
-
+    const watchlistId = req.params.id;
+    // const userId = new ObjectId(req.user._id || req.user.id);
+    
     const watchlistItem = await mongodb
       .getDb()
       .collection('watchlist')
       .aggregate([
-        { $match: { _id: watchlistId, userId: userId } },
+        // { $match: { _id: watchlistId, userId: userId } },
+        { $match: { _id: watchlistId } },
         {
           $lookup: {
             from: 'movies',
-            localField: 'movieId',
-            foreignField: '_id',
+             let: { movieId: '$movieId' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $eq: ['$_id', '$$movieId']
+                  }
+                }
+              }
+            ],
             as: 'movieDetails',
           },
         },
@@ -66,8 +117,9 @@ const getWatchlistItemById = async (req, res) => {
 // Use POST to create a watchlist item
 const addToWatchlist = async (req, res) => {
   try {
-    const userId = new ObjectId(req.user._id || req.user.id);
-    const movieId = new ObjectId(req.body.movieId);
+    // const userId = new ObjectId(req.user._id || req.user.id);
+     const userId = req.body.userId;
+    const movieId = req.body.movieId;
 
     // Check if movie exists
     const movie = await mongodb
@@ -94,20 +146,26 @@ const addToWatchlist = async (req, res) => {
     const watchlistItem = {
       userId: userId,
       movieId: movieId,
-      addedDate: new Date(),
+      // Format like "July 21, 2015"
+      addedDate: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }), 
       // plan-to-watch, watching, completed
       status: req.body.status || 'plan-to-watch', 
       // 0-5 scale
       userRating: req.body.userRating || null, 
       reviewText: req.body.reviewText || '',
-      startedWatching: req.body.startedWatching ? new Date(req.body.startedWatching) : null,
-      completedDate: req.body.completedDate ? new Date(req.body.completedDate) : null,
+      startedWatching: req.body.startedWatching || null,
+      completedDate: req.body.completedDate || null,
       rewatchCount: req.body.rewatchCount || 0,
     };
 
     // Validation
-    if (!watchlistItem.movieId) {
-      return res.status(400).json({ message: 'Movie ID is required' });
+    // if (!watchlistItem.movieId) {
+    //   return res.status(400).json({ message: 'Movie ID is required' });
+    // }
+
+    // Validation
+    if (!watchlistItem.movieId || !watchlistItem.userId) {
+      return res.status(400).json({ message: 'Movie ID and User ID are required' });
     }
 
     const validStatuses = ['plan-to-watch', 'watching', 'completed'];
@@ -145,17 +203,29 @@ const addToWatchlist = async (req, res) => {
 };
 
 // Use PUT to update a watchlist item
+// const updateWatchlistItem = async (req, res) => {
+//   try {
+//     const watchlistId = new ObjectId(req.params.id);
+//     const userId = new ObjectId(req.user._id || req.user.id);
+
 const updateWatchlistItem = async (req, res) => {
   try {
-    const watchlistId = new ObjectId(req.params.id);
-    const userId = new ObjectId(req.user._id || req.user.id);
+    const watchlistId = req.params.id;
+    // Get userId from body instead of req.user
+    const userId = req.body.userId || null;
+
+    // Build query - if userId provided, include it
+    const query = { _id: watchlistId };
+    if (userId) {
+      query.userId = userId;
+    }
 
     // Check if item exists and belongs to user
     const existingItem = await mongodb
       .getDb()
       .collection('watchlist')
-      .findOne({ _id: watchlistId, userId: userId });
-      
+      // .findOne({ _id: watchlistId, userId: userId });
+       .findOne(query);
       
     if (!existingItem) {
       return res.status(404).json({ 
@@ -190,11 +260,11 @@ const updateWatchlistItem = async (req, res) => {
     }
 
     if (req.body.startedWatching) {
-      updateData.startedWatching = new Date(req.body.startedWatching);
+      updateData.startedWatching = req.body.startedWatching;
     }
 
     if (req.body.completedDate) {
-      updateData.completedDate = new Date(req.body.completedDate);
+      updateData.completedDate = req.body.completedDate;
     }
 
     if (req.body.rewatchCount !== undefined) {
@@ -209,8 +279,12 @@ const updateWatchlistItem = async (req, res) => {
     const response = await mongodb
       .getDb()
       .collection('watchlist')
+      // .updateOne(
+      //   { _id: watchlistId, userId: userId }, 
+      //   { $set: updateData }
+      // );
       .updateOne(
-        { _id: watchlistId, userId: userId }, 
+        query, 
         { $set: updateData }
       );
 
@@ -229,13 +303,22 @@ const updateWatchlistItem = async (req, res) => {
 // DELETE watchlist item
 const deleteWatchlistItem = async (req, res) => {
   try {
-    const watchlistId = new ObjectId(req.params.id);
-    const userId = new ObjectId(req.user._id || req.user.id);
+    const watchlistId = req.params.id;
+    // const userId = new ObjectId(req.user._id || req.user.id);
+    // Get userId from body instead of req.user
+    const userId = req.body.userId || null;
+
+    // Build query - if userId provided, include it
+    const query = { _id: watchlistId };
+    if (userId) {
+      query.userId = userId;
+    }
 
     const response = await mongodb
       .getDb()
       .collection('watchlist')
-      .deleteOne({ _id: watchlistId, userId: userId });
+      // .deleteOne({ _id: watchlistId, userId: userId });
+      .deleteOne(query);
 
     if (response.deletedCount === 0) {
       res.status(404).json({ 

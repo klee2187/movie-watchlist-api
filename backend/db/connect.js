@@ -14,7 +14,7 @@ const initDb = async () => {
   const uri = process.env.MONGO_URL;
 
   if (!uri) {
-    throw new Error('MONGO_URI not defined in .env');
+    throw new Error('MONGO_URL not defined in .env');
   }
 
   try {

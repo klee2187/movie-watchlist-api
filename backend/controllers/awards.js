@@ -4,7 +4,6 @@ const mongodb = require('../db/connect');
 // To GET all awards
 const getAllAwards = async (req, res) => {
   try {
-    // now _db is already the 'test' database
     const result = await mongodb
       .getDb()
       .collection('awards')
@@ -12,45 +11,83 @@ const getAllAwards = async (req, res) => {
         {
           $lookup: {
             from: 'movies',
-            localField: 'movieId',
-            foreignField: '_id',
-            as: 'movieDetails',
-          },
+            let: { movieId: '$movieId' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $or: [
+                      { $eq: ['$_id', '$$movieId'] },
+                      { $eq: [{ $toString: '$_id' }, '$$movieId'] }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: 'movieDetails'
+          }
         },
-        { $unwind: '$movieDetails' },
+        { 
+          $unwind: { 
+            path: '$movieDetails', 
+            preserveNullAndEmptyArrays: false 
+          } 
+        }
       ])
       .toArray();
 
     res.status(200).json(result);
   } catch (err) {
-    res.status(500).json({ message: 'err.message' });
+    console.error('Error in getAllAwards:', err);
+    res.status(500).json({ message: err.message });
   }
 };
 
 // To GET awards by movie id
 const getAwardsByMovieId = async (req, res) => {
   try {
-    const movieId = new ObjectId(req.params.movieId);
+    const movieIdParam = req.params.movieId;
     
     const result = await mongodb
       .getDb()
       .collection('awards')
       .aggregate([
-        { $match: { movieId: movieId } },
+        {
+          $match: {
+            $expr: {
+              $or: [
+                { $eq: ['$movieId', movieIdParam] },
+                { $eq: [{ $toString: '$movieId' }, movieIdParam] }
+              ]
+            }
+          }
+        },
         {
           $lookup: {
             from: 'movies',
-            localField: 'movieId',
-            foreignField: '_id',
-            as: 'movieDetails',
-          },
+            let: { movieId: '$movieId' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $or: [
+                      { $eq: ['$_id', '$$movieId'] },
+                      { $eq: [{ $toString: '$_id' }, '$$movieId'] }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: 'movieDetails'
+          }
         },
-        { $unwind: '$movieDetails' },
+        { $unwind: '$movieDetails' }
       ])
       .toArray();
 
     res.status(200).json(result);
   } catch (err) {
+    console.error('Error in getAwardsByMovieId:', err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -58,31 +95,52 @@ const getAwardsByMovieId = async (req, res) => {
 // GET award by ID
 const getAwardById = async (req, res) => {
   try {
-    const awardId = new ObjectId(req.params.id);
-
+    const awardId = req.params.id;
+    
     const result = await mongodb
       .getDb()
       .collection('awards')
       .aggregate([
-        { $match: { _id: awardId } },
+        {
+          $match: {
+            $expr: {
+              $or: [
+                { $eq: ['$_id', awardId] },
+                { $eq: [{ $toString: '$_id' }, awardId] }
+              ]
+            }
+          }
+        },
         {
           $lookup: {
             from: 'movies',
-            localField: 'movieId',
-            foreignField: '_id',
-            as: 'movieDetails',
-          },
+            let: { movieId: '$movieId' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $or: [
+                      { $eq: ['$_id', '$$movieId'] },
+                      { $eq: [{ $toString: '$_id' }, '$$movieId'] }
+                    ]
+                  }
+                }
+              }
+            ],
+            as: 'movieDetails'
+          }
         },
-        { $unwind: '$movieDetails' },
+        { $unwind: '$movieDetails' }
       ])
       .toArray();
 
     if (!result || result.length === 0) {
-      res.status(404).json({ message: 'Award not found' });
-    } else {
-      res.status(200).json(result[0]);
+      return res.status(404).json({ message: 'Award not found' });
     }
+
+    res.status(200).json(result[0]);
   } catch (err) {
+    console.error('Error in getAwardById:', err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -90,7 +148,7 @@ const getAwardById = async (req, res) => {
 // Use POST to create award
 const createAward = async (req, res) => {
   try {
-    const movieId = new ObjectId(req.body.movieId);
+    const movieId = req.body.movieId; // Keep as string
 
     // Check if movie exists
     const movie = await mongodb
@@ -111,14 +169,8 @@ const createAward = async (req, res) => {
       recipient: req.body.recipient,
     };
     
-     // Validation
-    if (
-      !award.movieId ||
-      !award.awardName ||
-      !award.category ||
-      !award.year ||
-      !award.recipient
-    ) {
+    // Validation
+    if (!award.movieId || !award.awardName || !award.category || !award.year || !award.recipient) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
@@ -140,6 +192,7 @@ const createAward = async (req, res) => {
       id: response.insertedId,
     });
   } catch (err) {
+    console.error('Error in createAward:', err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -147,7 +200,7 @@ const createAward = async (req, res) => {
 // PUT update award
 const updateAward = async (req, res) => {
   try {
-    const awardId = new ObjectId(req.params.id);
+    const awardId = req.params.id; // Keep as string
 
     const award = {
       awardName: req.body.awardName,
@@ -184,6 +237,7 @@ const updateAward = async (req, res) => {
 
     res.status(200).json({ message: 'Award updated successfully' });
   } catch (err) {
+    console.error('Error in updateAward:', err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -191,7 +245,7 @@ const updateAward = async (req, res) => {
 // DELETE award
 const deleteAward = async (req, res) => {
   try {
-    const awardId = new ObjectId(req.params.id);
+    const awardId = req.params.id; // Keep as string
     
     const response = await mongodb
       .getDb()
@@ -199,12 +253,12 @@ const deleteAward = async (req, res) => {
       .deleteOne({ _id: awardId });
 
     if (response.deletedCount === 0) {
-      res.status(404).json({ 
-        message: 'Award not found' });
+      return res.status(404).json({ message: 'Award not found' });
     } else {
-      res.status(200).json({ message: 'Award deleted successfully' });
+      return res.status(200).json({ message: 'Award deleted successfully' });
     }
   } catch (err) {
+    console.error('Error in deleteAward:', err);
     res.status(500).json({ message: err.message });
   }
 };

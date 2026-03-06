@@ -1,7 +1,7 @@
 const routes = require('express').Router();
 const awardController = require('../controllers/awards');
 const { awardValidationRules } = require('../middleware/validation');
-const { isAuthenticated } = require('../middleware/auth');
+// const { isAuthenticated } = require('../middleware/auth');
 
 // GET all awards
 routes.get('/', awardController.getAllAwards);
