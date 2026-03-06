@@ -7,15 +7,31 @@ const { isAuthenticated } = require('../middleware/auth');
 routes.get('/', watchlistController.getUserWatchlist);
 
 // GET a single watchlist item by ID
-routes.get('/:id', watchlistController.getWatchlistItemById );
+routes.get(
+    '/:id', 
+    watchlistValidationRules.getById,
+    watchlistController.getWatchlistItemById 
+);
 
 // POST to add movie to watchlist
-routes.post( '/', watchlistController.addToWatchlist );
+routes.post( 
+    '/', 
+    watchlistValidationRules.create,
+    watchlistController.addToWatchlist 
+);
 
 // PUT to update a watchlist item
-routes.put( '/:id', watchlistController.updateWatchlistItem );
+routes.put( 
+    '/:id', 
+     watchlistValidationRules.update,
+    watchlistController.updateWatchlistItem 
+);
 
 // DELETE to remove a watchlist item
-routes.delete( '/:id', watchlistController.deleteWatchlistItem );
+routes.delete( 
+    '/:id', 
+    watchlistValidationRules.delete,
+    watchlistController.deleteWatchlistItem 
+);
 
 module.exports = routes;

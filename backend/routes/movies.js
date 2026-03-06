@@ -8,16 +8,32 @@ routes.get('/', movieController.getAllMovies );
 
 
 // GET a single movie by ID
-routes.get('/:id', movieController.getMovieById );
+routes.get(
+    '/:id', 
+    movieValidationRules.getById, 
+    movieController.getMovieById 
+);
 
 // POST to create a new movie
-routes.post('/', movieController.createMovie );
+routes.post(
+    '/',
+    movieValidationRules.create, 
+    movieController.createMovie 
+);
 
 // PUT to update a movie
-routes.put( '/:id', movieController.updateMovie );
+routes.put( 
+    '/:id', 
+    movieValidationRules.update,
+    movieController.updateMovie 
+);
 
 // DELETE to delete a movie
-routes.delete( '/:id', movieController.deleteMovie );
+routes.delete( 
+    '/:id', 
+    movieValidationRules.delete,
+    movieController.deleteMovie, 
+);
 
 module.exports = routes;
 
