@@ -5,7 +5,11 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+<<<<<<< HEAD
     "start": "nodemon server.js",
+=======
+    "start": "node server.js",
+>>>>>>> 7b31dd67932f4c6f26271f86ead1da5e6acf9efa
     "dev": "nodemon server.js"
   },
   "keywords": [],
@@ -17,6 +21,7 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-validator": "^7.3.1",
+    "init": "^0.1.2",
     "mongodb": "^7.1.0",
     "morgan": "^1.10.1",
     "node": "^22.22.1"

@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
@@ -8,6 +9,9 @@ dotenv.config({ path: './.env' });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Static
+app.use('/public', express.static(path.join(__dirname, '../frontend/public')));
 
 // Middleware
 app.use(morgan('dev'));
