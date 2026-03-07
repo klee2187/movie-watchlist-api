@@ -199,16 +199,33 @@ const movieValidationRules = {
       })
       .withMessage('All genres must be non-empty strings'),
 
-    body('releaseDate')
-      .notEmpty()
-      .withMessage('Release date is required')
-      .isISO8601()
-      .withMessage('Release date must be a valid date (YYYY-MM-DD)'),
+     body('releaseDate')      
+     .notEmpty()      
+     .withMessage('Release date is required')      
+     .custom((value) => {        
+      
+      // MM/DD/YYYY format validation        
+       const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;        
+       if (!dateRegex.test(value)) {          
+       throw new Error('Must be a valid date (MM/DD/YYYY format)');        
+       }        
+      const [month, day, year] = value.split('/').map(Number);        
+      const date = new Date(year, month - 1, day);        
+      // Check if it's a valid date (e.g., not 02/30/2023)        
+       if (          
+       date.getFullYear() !== year ||          
+       date.getMonth() !== month - 1 ||          
+       date.getDate() !== day        
+       ) {          
+      throw new Error('Must be a valid date');        
+    }        
+    return true;      
+  }),
 
     body('runtime')
       .notEmpty()
       .withMessage('Runtime is required')
-      .isInt({ min: 1, max: 500 })
+      .matches(/^\d+\s*(minutes?|mins?)$/i) 
       .withMessage('Runtime must be between 1 and 500 minutes'),
 
     body('rating')
@@ -255,14 +272,32 @@ const movieValidationRules = {
       })
       .withMessage('All genres must be non-empty strings'),
 
-    body('releaseDate')
-      .optional()
-      .isISO8601()
-      .withMessage('Release date must be a valid date (YYYY-MM-DD)'),
+    body('releaseDate')      
+     .notEmpty()      
+     .withMessage('Release date is required')      
+     .custom((value) => {        
+      
+      // MM/DD/YYYY format validation        
+       const dateRegex = /^(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])\/\d{4}$/;        
+       if (!dateRegex.test(value)) {          
+       throw new Error('Must be a valid date (MM/DD/YYYY format)');        
+       }        
+      const [month, day, year] = value.split('/').map(Number);        
+      const date = new Date(year, month - 1, day);        
+      // Check if it's a valid date (e.g., not 02/30/2023)        
+       if (          
+       date.getFullYear() !== year ||          
+       date.getMonth() !== month - 1 ||          
+       date.getDate() !== day        
+       ) {          
+      throw new Error('Must be a valid date');        
+    }        
+    return true;      
+  }),
 
     body('runtime')
       .optional()
-      .isInt({ min: 1, max: 500 })
+      .matches(/^\d+\s*(minutes?|mins?)$/i) 
       .withMessage('Runtime must be between 1 and 500 minutes'),
 
     body('rating')
