@@ -28,8 +28,7 @@ Content-Type: application/json
 }
  
 ### Update a movie
-PUT http://localhost:3000/movies/69abad74a3e4c6a99597e9bf
-Cookie: isLoggedIn=true; userName=Mitchelle%20Garrett; userId=699cdc237263b2086f531188; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OWNkYzIzNzI2M2IyMDg2ZjUzMTE4OCIsImVtYWlsIjoibWFnYXJyZXR0NzdAZ21haWwuY29tIiwiZGlzcGxheU5hbWUiOiJNaXRjaGVsbGUgR2FycmV0dCIsImlhdCI6MTc3MjE2MTU1OCwiZXhwIjoxNzcyMjQ3OTU4fQ.NOt4o1BLhFtD0vw9J-4aYgMPJhJfTdLHNlutqpVpoMk; connect.sid=s%3A4MfrWP_7rwxle2awN4UJab_9uApOr5Ic.IGAynRME%2BaUvkiepGDl1l9aJdMpY6voprNgGPatBDmU
+PUT http://localhost:3000/movies/69abb2fe4c9e9c43c724cce6
 Content-Type: application/json
  
 {
@@ -43,8 +42,7 @@ Content-Type: application/json
 }
  
 ### Delete a movie
-DELETE http://localhost:3000/movies/69aba6e69ae16a05227f5bf3
-Cookie: isLoggedIn=true; userName=Mitchelle%20Garrett; userId=699cdc237263b2086f531188; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5OWNkYzIzNzI2M2IyMDg2ZjUzMTE4OCIsImVtYWlsIjoibWFnYXJyZXR0NzdAZ21haWwuY29tIiwiZGlzcGxheU5hbWUiOiJNaXRjaGVsbGUgR2FycmV0dCIsImlhdCI6MTc3MjE2MTU1OCwiZXhwIjoxNzcyMjQ3OTU4fQ.NOt4o1BLhFtD0vw9J-4aYgMPJhJfTdLHNlutqpVpoMk; connect.sid=s%3A4MfrWP_7rwxle2awN4UJab_9uApOr5Ic.IGAynRME%2BaUvkiepGDl1l9aJdMpY6voprNgGPatBDmU
+DELETE http://localhost:3000/movies/69abb2fe4c9e9c43c724cce6
 Content-Type: application/json
  
 ### Get all users
