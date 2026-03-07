@@ -178,11 +178,11 @@ const updateMovie = async (req, res) => {
     }
 
     // Validate runtime if provided
-    if (req.body.runtime && movie.runtime <= 0) {
-      return res.status(400).json({ 
-        message: 'Runtime must be a positive number' 
-      });
-    }
+    //if (req.body.runtime && movie.runtime <= 0) {
+    //  return res.status(400).json({ 
+    //    message: 'Runtime must be a positive number' 
+    //  });
+    //}
 
     // Check for duplicate movie (excluding current)
     if (req.body.title || req.body.director || req.body.releaseDate) {
@@ -206,7 +206,7 @@ const updateMovie = async (req, res) => {
     const response = await mongodb
       .getDb()
       .collection('movies')
-      .replaceOne({ _id: movieId }, { $set: movie });
+      .updateOne({ _id: movieId }, { $set: movie });
 
     if (response.matchedCount === 0) {
       return res.status(404).json({ message: 'Movie not found' });
