@@ -37,50 +37,6 @@ const getMovieById = async (req, res) => {
   }
 };
 
-// const getMovieById = async (req, res) => {
-//   try {
-//     const id = req.params.id;
-//     console.log('Searching for movie with ID:', id);
-//     console.log('ID type:', typeof id);
-    
-//     // Try searching as string first (without converting to ObjectId)
-//     const result = await mongodb
-//       .getDb()
-//       .collection('movies')
-//       .findOne({ _id: id });  // Search as string
-    
-//     console.log('Result as string search:', result ? 'Found' : 'Not found');
-    
-//     if (!result) {
-//       // If not found as string, try as ObjectId
-//       try {
-//         const objectId = new ObjectId(id);
-//         console.log('Trying as ObjectId:', objectId);
-        
-//         const result2 = await mongodb
-//           .getDb()
-//           .collection('movies')
-//           .findOne({ _id: objectId });
-        
-//         console.log('Result as ObjectId search:', result2 ? 'Found' : 'Not found');
-        
-//         if (!result2) {
-//           return res.status(404).json({ message: 'Movie not found' });
-//         }
-//         return res.status(200).json(result2);
-//       } catch (objectIdError) {
-//         console.log('Invalid ObjectId format:', objectIdError.message);
-//         return res.status(404).json({ message: 'Movie not found' });
-//       }
-//     }
-    
-//     res.status(200).json(result);
-//   } catch (err) {
-//     console.error('Error in getMovieById:', err);
-//     res.status(500).json({ message: err.message });
-//   }
-// };
-
 // Use POST to create a contact
 const createMovie = async (req, res) => {
   try {
